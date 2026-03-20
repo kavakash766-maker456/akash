@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Immersive Automotive Showcase</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        deepspace: '#050505',
+                        neonblue: '#00f3ff',
+                        electricpurple: '#b026ff',
+                        glass: 'rgba(255, 255, 255, 0.05)',
+                        glassborder: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Syncopate', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS Styles -->
+    <style>
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            margin: 0;
+            overflow-x: hidden;
+            cursor: none; /* Hide default for custom cursor */
+            background-image: radial-gradient(circle at 15% 50%, rgba(0, 243, 255, 0.05), transparent 25%),
+                              radial-gradient(circle at 85% 30%, rgba(176, 38, 255, 0.05), transparent 25%);
+            background-attachment: fixed;
+        }
+
+        /* Custom Hover Cursor Elements */
+        a, button, input {
+            cursor: none;
+        }
+
+        /* Custom Glowing Cursor */
+        #cursor-glow {
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, rgba(0,243,255,0.8) 0%, rgba(176,38,255,0) 70%);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            transition: width 0.3s, height 0.3s, background 0.3s;
+            mix-blend-mode: screen;
+        }
+        
+        #cursor-dot {
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 10000;
+        }
+
+        .cursor-hover #cursor-glow {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(176,38,255,0.8) 0%, rgba(0,243,255,0) 70%);
+        }
+
+        /* High-end Glassmorphism */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: skewX(-20deg);
+            transition: all 0.6s ease;
+        }
+
+        .glass-card:hover::before {
+            left: 150%;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 243, 255, 0.4);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.15);
+            transform: translateY(-5px);
+        }
+        
+        /* Neon text */
+        .text-neon-blue {
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.7);
+        }
+        
+        .text-neon-purple {
+            text-shadow: 0 0 10px rgba(176, 38, 255, 0.7);
+        }
+
+        /* AI Avatar Bubble */
+        #ai-avatar {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 50;
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+            pointer-events: none;
+        }
+
+        #ai-orb {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fff, #00f3ff, #b026ff);
+            box-shadow: 0 0 20px #00f3ff, inset 0 0 20px rgba(255,255,255,0.8);
+            animation: floatOrb 4s ease-in-out infinite;
+            position: relative;
+            pointer-events: auto;
+            cursor: none;
+        }
+
+        #ai-orb::after {
+            content: '';
+            position: absolute;
+            top: 15px; left: 15px;
+            width: 10px; height: 10px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 20px 0 0 white;
+            opacity: 0.8;
+            transition: transform 0.3s;
+        }
+
+        #ai-message {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #b026ff;
+            padding: 12px 20px;
+            border-radius: 12px 12px 0 12px;
+            font-size: 0.9rem;
+            max-width: 250px;
+            box-shadow: 0 4px 15px rgba(176, 38, 255, 0.3);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .ai-active #ai-message {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @keyframes floatOrb {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px) scale(1.05); }
+        }
+
+        /* Modal Transitions */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-leave {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .modal-leave-active {
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        /* Image Placeholder Gradient */
+        .img-gradient {
+            background: linear-gradient(45deg, #111, #222);
+            position: relative;
+        }
+        
+        .img-gradient::after {
+            content: '\f1b9'; /* Car icon */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: rgba(255,255,255,0.05);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f3ff; 
+        }
+
+        /* Loader */
+        .loader {
+            border-top-color: #00f3ff;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-electricpurple selection:text-white">
+
+    <!-- Custom Cursor -->
+    <div id="cursor-glow"></div>
+    <div id="cursor-dot"></div>
+
+    <!-- AI Avatar -->
+    <div id="ai-avatar">
+        <div id="ai-message" class="font-sans text-sm tracking-wide text-gray-200">
+            Initializing neural link...
+        </div>
+        <div id="ai-orb" class="interactive" alt="AI Assistant"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-40 top-0 transition-all duration-300" id="navbar">
+        <div class="glass-panel mx-4 mt-4 px-6 py-4 rounded-2xl flex justify-between items-center">
+            <div class="flex items-center gap-3 interactive">
+                <i class="fa-solid fa-infinity text-neonblue text-2xl"></i>
+                <span class="font-display font-bold text-xl tracking-tighter uppercase text-white">
+                    Auto<span class="text-neonblue">Verse</span>
+                </span>
+            </div>
+            <div class="flex gap-6 items-center">
+                <a href="#explore" class="interactive text-sm uppercase tracking-widest text-gray-400 hover:text-white transition-colors">Explore</a>
+                <a href="admin.html" class="interactive text-sm uppercase tracking-widest text-gray-400 hover:text-electricpurple transition-colors"><i class="fa-solid fa-lock"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative h-screen flex flex-col items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <!-- Stylized animated background elements -->
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-neonblue rounded-full mix-blend-screen filter blur-[128px] opacity-20 animate-pulse"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-electricpurple rounded-full mix-blend-screen filter blur-[128px] opacity-20 animate-pulse" style="animation-delay: 2s;"></div>
+        </div>
+
+        <div class="z-10 text-center px-4 max-w-4xl mx-auto" id="hero-content">
+            <h1 class="font-display text-5xl md:text-7xl font-bold uppercase tracking-tighter mb-6 text-white leading-tight">
+                Experience The <br/>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-neonblue to-electricpurple text-neon-blue">Future</span> of Motion
+            </h1>
+            <p class="font-sans text-lg md:text-xl text-gray-400 font-light mb-10 max-w-2xl mx-auto tracking-wide">
+                Immerse yourself in a globally connected neural network of automotive heritage. Powered by Gemini AI.
+            </p>
+            
+            <!-- Global Brand Search Form -->
+            <div class="glass-panel p-2 rounded-full max-w-xl mx-auto flex items-center shadow-2xl relative interactive">
+                <i class="fa-solid fa-magnifying-glass text-gray-400 ml-4"></i>
+                <input type="text" id="brand-search" placeholder="Enter any brand globally (e.g., Porsche, Nissan, Tesla)..." 
+                       class="bg-transparent border-none outline-none text-white px-4 py-3 w-full font-sans tracking-wide placeholder-gray-500">
+                <button id="search-btn" class="bg-gradient-to-r from-neonblue to-electricpurple text-black font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:shadow-[0_0_20px_rgba(0,243,255,0.5)] transition-shadow">
+                    Ignite
+                </button>
+            </div>
+        </div>
+
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10 animate-bounce cursor-pointer interactive">
+            <a href="#explore"><i class="fa-solid fa-chevron-down text-gray-500 text-2xl hover:text-white transition-colors"></i></a>
+        </div>
+    </header>
+
+    <!-- Main Explore Section -->
+    <main id="explore" class="min-h-screen py-24 relative z-10 px-6 md:px-12 max-w-7xl mx-auto">
+        
+        <!-- Status / Category Header -->
+        <div class="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-gray-800 pb-6 reveal-up">
+            <div>
+                <h2 class="font-display text-3xl font-bold uppercase tracking-tighter text-white" id="results-title">
+                    Global <span class="text-gray-600">Showcase</span>
+                </h2>
+                <p class="text-gray-400 mt-2 font-sans tracking-wide" id="results-subtitle">Search a brand to reveal its lineage.</p>
+            </div>
+            
+            <!-- Dynamic Filters (Populated via JS) -->
+            <div class="flex gap-2 mt-6 md:mt-0 flex-wrap" id="category-filters">
+                <!-- Filters will spawn here -->
+            </div>
+        </div>
+
+        <!-- Vehicles Grid -->
+        <div id="loader" class="hidden my-20 flex flex-col items-center justify-center">
+            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-800 h-16 w-16 mb-4"></div>
+            <p class="text-neonblue font-display tracking-widest uppercase text-sm animate-pulse">Retreiving Databanks...</p>
+        </div>
+
+        <div id="vehicles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Default Grid Before Search -->
+            <div class="col-span-full py-20 text-center glass-panel rounded-2xl reveal-up border-dashed border-gray-700">
+                <i class="fa-solid fa-car-side text-6xl text-gray-700 mb-6"></i>
+                <h3 class="font-display text-2xl text-gray-400 uppercase tracking-widest mb-2">Awaiting Input</h3>
+                <p class="text-gray-600 font-sans max-w-md mx-auto">Enter an automotive brand above to tap into the global vehicle catalog and unlock comprehensive details.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Deep Dive Modal -->
+    <div id="detail-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-xl" id="modal-backdrop"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative z-10 w-full max-w-5xl mx-4 glass-panel rounded-3xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-gray-700">
+            
+            <button id="close-modal" class="absolute top-4 right-4 z-20 w-10 h-10 bg-black/50 hover:bg-white hover:text-black rounded-full flex items-center justify-center transition-colors interactive">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <!-- Image Side -->
+            <div class="w-full md:w-1/2 relative bg-black img-gradient min-h-[300px] md:min-h-full">
+                <img id="modal-image" src="" alt="Vehicle" class="w-full h-full object-cover absolute inset-0 opacity-0 transition-opacity duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#050505] pointer-events-none"></div>
+                
+                <!-- Quick Specs overlay -->
+                <div class="absolute bottom-6 left-6 right-6 hidden md:block">
+                    <div class="glass-card p-4 rounded-xl flex justify-between items-center backdrop-blur-md bg-black/30">
+                        <div class="text-center">
+                            <i class="fa-solid fa-gauge-high text-neonblue mb-1"></i>
+                            <div class="text-xs text-gray-400 uppercase tracking-wider">Top Speed</div>
+                            <div class="font-display font-bold text-sm" id="modal-speed">-- mph</div>
+                        </div>
+                        <div class="h-8 w-px bg-gray-700"></div>
+                        <div class="text-center">
+                            <i class="fa-solid fa-bolt text-electricpurple mb-1"></i>
+                            <div class="text-xs text-gray-400 uppercase tracking-wider">0-60 mph</div>
+                            <div class="font-display font-bold text-sm" id="modal-accel">-- s</div>
+                        </div>
+                        <div class="h-8 w-px bg-gray-700"></div>
+                        <div class="text-center">
+                            <i class="fa-solid fa-horse-head text-gray-300 mb-1"></i>
+                            <div class="text-xs text-gray-400 uppercase tracking-wider">Power</div>
+                            <div class="font-display font-bold text-sm" id="modal-hp">-- hp</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Side -->
+            <div class="w-full md:w-1/2 p-8 md:p-12 flex flex-col items-start overflow-y-auto">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="px-3 py-1 glass-card rounded-full text-xs uppercase tracking-widest text-neonblue font-bold border-neonblue/30" id="modal-brand">Brand</span>
+                </div>
+                
+                <h2 id="modal-model" class="font-display text-3xl md:text-5xl font-bold uppercase tracking-tighter mb-6 text-white leading-none">
+                    Model Name
+                </h2>
+                
+                <div class="w-full h-px bg-gradient-to-r from-gray-700 to-transparent mb-6"></div>
+
+                <!-- Heritage Story Container -->
+                <div class="relative w-full">
+                    <h3 class="text-electricpurple text-sm font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-microchip"></i> AI Analysis
+                    </h3>
+                    
+                    <div id="gemini-loading" class="hidden mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="loader ease-linear rounded-full border-2 border-t-2 border-electricpurple h-5 w-5"></div>
+                            <span class="text-gray-400 text-sm italic font-sans animate-pulse">Gemini is synthesizing narrative...</span>
+                        </div>
+                    </div>
+                    
+                    <div id="modal-story" class="text-gray-300 font-sans leading-relaxed text-sm md:text-base space-y-4 font-light">
+                        Click 'Deep Dive' to initialize AI heritage sequence.
+                    </div>
+                </div>
+                
+                <div class="mt-auto pt-8 w-full flex justify-end">
+                    <button class="interactive uppercase tracking-widest text-xs text-gray-500 hover:text-white flex items-center gap-2 transition-colors">
+                        <i class="fa-solid fa-share-nodes"></i> Share Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://unpkg.com/scrollreveal"></script>
+    <script>
+        // --- Custom Cursor & Interactivity ---
+        const cursorGlow = document.getElementById('cursor-glow');
+        const cursorDot = document.getElementById('cursor-dot');
+        const aiAvatar = document.getElementById('ai-avatar');
+        const aiMessage = document.getElementById('ai-message');
+        const aiOrb = document.getElementById('ai-orb');
+        let aiHoverTimeout;
+
+        document.addEventListener('mousemove', (e) => {
+            // Smooth follow for glow
+            gsap.to(cursorGlow, {
+                x: e.clientX,
+                y: e.clientY,
+                duration: 0.6,
+                ease: "power2.out"
+            });
+            // Exact follow for dot
+            gsap.to(cursorDot, {
+                x: e.clientX,
+                y: e.clientY,
+                duration: 0,
+            });
+        });
+
+        // Add hover effects for interactive elements
+        const updateInteractiveElements = () => {
+            document.querySelectorAll('.interactive, a, button, input').forEach(el => {
+                el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+                el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+            });
+        };
+        updateInteractiveElements();
+
+        // --- Animations ---
+        ScrollReveal().reveal('.reveal-up', {
+            distance: '50px',
+            duration: 1000,
+            easing: 'cubic-bezier(0.5, 0, 0, 1)',
+            opacity: 0,
+            origin: 'bottom',
+            interval: 150
+        });
+
+        gsap.from("#hero-content > *", {
+            y: 50,
+            opacity: 0,
+            duration: 1.2,
+            stagger: 0.2,
+            ease: "power3.out",
+            delay: 0.3
+        });
+
+        // Parallax effect on scroll
+        window.addEventListener('scroll', () => {
+            const scrolled = window.scrollY;
+            gsap.to("#hero-content", {
+                y: scrolled * 0.4,
+                opacity: 1 - min(scrolled * 0.003, 1),
+                duration: 0.5
+            });
+            // Navbar blur effect
+            const navbar = document.getElementById('navbar');
+            if(scrolled > 50) {
+                navbar.firstElementChild.classList.add('bg-black/40', 'shadow-lg');
+            } else {
+                navbar.firstElementChild.classList.remove('bg-black/40', 'shadow-lg');
+            }
+        });
+        
+        function min(a, b) { return a < b ? a : b; }
+
+        // --- AI Avatar Logic ---
+        const aiResponses = {
+            search: ["Scanning global databanks...", "Processing automotive query...", "Uplinking to vehicle registry..."],
+            found: ["Impressive selection.", "Data retrieved successfully.", "A formidable lineage."],
+            error: ["Query returned a void.", "Signal lost. Try another brand.", "Data corruption detected."],
+            idle: ["Awaiting your command.", "Neural link active.", "Shall we explore?"]
+        };
+
+        function speakAI(type, customText = null) {
+            aiAvatar.classList.add('ai-active');
+            
+            if(customText) {
+                aiMessage.textContent = customText;
+            } else {
+                const arr = aiResponses[type];
+                aiMessage.textContent = arr[Math.floor(Math.random() * arr.length)];
+            }
+
+            clearTimeout(aiHoverTimeout);
+            aiHoverTimeout = setTimeout(() => {
+                aiAvatar.classList.remove('ai-active');
+            }, 4000);
+        }
+
+        aiOrb.addEventListener('mouseenter', () => speakAI('idle'));
+
+        // --- Data Fetching Logic (vPIC API) ---
+        const searchInput = document.getElementById('brand-search');
+        const searchBtn = document.getElementById('search-btn');
+        const grid = document.getElementById('vehicles-grid');
+        const loader = document.getElementById('loader');
+        const resultsTitle = document.getElementById('results-title');
+        const categoryFilters = document.getElementById('category-filters');
+
+        let currentModels = [];
+        let allUniqueWords = []; // For faux categorization
+
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') performSearch();
+        });
+
+        async function performSearch() {
+            const query = searchInput.value.trim().toLowerCase();
+            if(!query) return;
+
+            speakAI('search');
+            grid.innerHTML = '';
+            categoryFilters.innerHTML = '';
+            loader.classList.remove('hidden');
+            resultsTitle.innerHTML = `Scanning: <span class="text-neonblue uppercase">${query}</span>`;
+
+            try {
+                // Fetch models for make
+                const res = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${query}?format=json`);
+                const data = await res.json();
+
+                loader.classList.add('hidden');
+
+                if(data.Results && data.Results.length > 0) {
+                    speakAI('found');
+                    
+                    // Filter Out some duplicates, sort and take a reasonable subset to not crash the browser
+                    // vPIC can return hundreds of models
+                    let uniqueModels = data.Results.filter((v,i,a)=>a.findIndex(v2=>(v2.Model_Name.trim().toUpperCase()===v.Model_Name.trim().toUpperCase()))===i);
+                    // Filter out non-alphanumeric weird entries sometimes found
+                    uniqueModels = uniqueModels.filter(m => m.Model_Name.length > 1 && !m.Model_Name.includes('/'));
+                    
+                    // Sort alphabetically
+                    uniqueModels.sort((a,b) => a.Model_Name.localeCompare(b.Model_Name));
+                    
+                    // Just take top 24 for showcase purposes to maintain performance & layout
+                    currentModels = uniqueModels.slice(0, 24);
+                    
+                    // Render Cards
+                    renderGrid(currentModels, query);
+
+                    // Create faux categories based on keywords logic (since vPIC GetModelsForMake doesn't give VehicleType easily)
+                    generateCategories(query);
+                    
+                    // Track Stats
+                    updateStats();
+
+                } else {
+                    speakAI('error');
+                    grid.innerHTML = `
+                        <div class="col-span-full py-20 text-center glass-panel rounded-2xl border-dashed border-red-900">
+                            <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-4"></i>
+                            <h3 class="font-display text-xl text-gray-300 uppercase">No Data Found</h3>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error(err);
+                speakAI('error', "API Connection Failed.");
+                loader.classList.add('hidden');
+            }
+        }
+
+        function createCarCard(make, model) {
+            const div = document.createElement('div');
+            div.className = 'glass-card rounded-2xl p-6 group cursor-pointer interactive transform transition-transform duration-500';
+            
+            // AI Hover reaction for specific cars (randomized humor/facts)
+            div.addEventListener('mouseenter', () => {
+                const quips = [
+                    `That ${model}? Faster than your internet connection! 😂`,
+                    `The ${model} has exceptional aerodynamic drag... basically a rocket.`,
+                    `I analyzed the ${model}. My circuits approve.`,
+                    `Classic ${make} engineering here.`
+                ];
+                speakAI('idle', quips[Math.floor(Math.random() * quips.length)]);
+                gsap.to(div, { scale: 1.03, duration: 0.3 });
+            });
+            div.addEventListener('mouseleave', () => {
+                gsap.to(div, { scale: 1, duration: 0.3 });
+            });
+
+            // We use loremflickr for generating an image based on keyword
+            const imgKeyword = encodeURIComponent(`${make.toLowerCase()} ${model.toLowerCase()}`);
+            const imgSrc = `https://loremflickr.com/400/250/${imgKeyword},car/all`;
+            
+            div.innerHTML = `
+                <div class="h-48 rounded-xl overflow-hidden mb-6 relative img-gradient bg-black">
+                    <img src="${imgSrc}" loading="lazy" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" onerror="this.style.opacity='0'">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-80"></div>
+                </div>
+                <div class="absolute top-8 right-8 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-gray-700 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i class="fa-solid fa-bolt text-electricpurple text-xs"></i>
+                </div>
+                <div class="flex justify-between items-end">
+                    <div>
+                        <div class="text-xs uppercase tracking-widest text-neonblue mb-1">${make}</div>
+                        <h3 class="font-display font-bold text-xl uppercase tracking-tight text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-400 transition-all">${model}</h3>
+                    </div>
+                    <button class="deep-dive-btn bg-white/10 hover:bg-white hover:text-black w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-lg interactive" data-make="${make}" data-model="${model}">
+                        <i class="fa-solid fa-arrow-right -rotate-45"></i>
+                    </button>
+                </div>
+            `;
+
+            // Attach Modal event
+            div.querySelector('.deep-dive-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openModal(make, model, imgSrc);
+            });
+
+            return div;
+        }
+
+        function renderGrid(models, make) {
+            grid.innerHTML = '';
+            models.forEach((m, i) => {
+                const el = createCarCard(make, m.Model_Name);
+                grid.appendChild(el);
+                
+                // Animate entrance
+                gsap.from(el, {
+                    y: 40,
+                    opacity: 0,
+                    duration: 0.6,
+                    delay: i * 0.05,
+                    ease: "back.out(1.7)"
+                });
+            });
+            updateInteractiveElements();
+        }
+
+        // Generate Faux Categories just for UI showcase
+        function generateCategories(make) {
+            const cats = ['All', 'Performance', 'Luxury', 'Utility'];
+            cats.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = `interactive px-4 py-1.5 rounded-full border text-xs uppercase tracking-widest transition-colors ${c === 'All' ? 'bg-neonblue text-black border-neonblue font-bold shadow-[0_0_10px_rgba(0,243,255,0.4)]' : 'border-gray-700 text-gray-400 hover:border-gray-400'}`;
+                btn.textContent = c;
+                btn.addEventListener('click', () => {
+                    // Update Active state
+                    Array.from(categoryFilters.children).forEach(child => {
+                        child.className = `interactive px-4 py-1.5 rounded-full border text-xs uppercase tracking-widest transition-colors border-gray-700 text-gray-400 hover:border-gray-400`;
+                    });
+                    btn.className = `interactive px-4 py-1.5 rounded-full border text-xs uppercase tracking-widest transition-colors bg-neonblue text-black border-neonblue font-bold shadow-[0_0_10px_rgba(0,243,255,0.4)]`;
+                    
+                    // Simple shuffle for visual effect since we don't have real category data from GetModelsForMake
+                    const shuffled = [...currentModels].sort(() => 0.5 - Math.random());
+                    renderGrid(shuffled, make);
+                });
+                categoryFilters.appendChild(btn);
+            });
+            updateInteractiveElements();
+        }
+
+        // --- Deep Dive Modal & Gemini Logic ---
+        const modal = document.getElementById('detail-modal');
+        const mBrand = document.getElementById('modal-brand');
+        const mModel = document.getElementById('modal-model');
+        const mImg = document.getElementById('modal-image');
+        const mStory = document.getElementById('modal-story');
+        const mSpd = document.getElementById('modal-speed');
+        const mAcc = document.getElementById('modal-accel');
+        const mHp = document.getElementById('modal-hp');
+        const geminiLoading = document.getElementById('gemini-loading');
+
+        function openModal(make, model, imgSrc) {
+            mBrand.textContent = make;
+            mModel.textContent = model;
+            mImg.src = imgSrc;
+            
+            // Set random mock stats for UI showcase
+            mSpd.textContent = Math.floor(Math.random() * (220 - 130) + 130) + ' mph';
+            mAcc.textContent = (Math.random() * (6.5 - 2.5) + 2.5).toFixed(1) + ' s';
+            mHp.textContent = Math.floor(Math.random() * (800 - 200) + 200) + ' hp';
+
+            mImg.onload = () => mImg.style.opacity = '1';
+            
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // lock scroll
+
+            // GSAP Modal Entry
+            gsap.fromTo(modal.querySelector('.glass-panel'), 
+                { scale: 0.9, y: 50, opacity: 0 }, 
+                { scale: 1, y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }
+            );
+
+            fetchGeminiStory(make, model);
+        }
+
+        document.getElementById('close-modal').addEventListener('click', closeModal);
+        document.getElementById('modal-backdrop').addEventListener('click', closeModal);
+
+        function closeModal() {
+            gsap.to(modal.querySelector('.glass-panel'), {
+                scale: 0.95, y: 20, opacity: 0, duration: 0.3, ease: "power2.in", onComplete: () => {
+                    modal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                    mImg.style.opacity = '0';
+                    mStory.innerHTML = '';
+                }
+            });
+        }
+
+        async function fetchGeminiStory(make, model) {
+            geminiLoading.classList.remove('hidden');
+            mStory.classList.add('hidden');
+            
+            const apiKey = localStorage.getItem('gemini_api_key');
+            let systemPrompt = localStorage.getItem('gemini_system_prompt');
+            
+            if(!systemPrompt) {
+                systemPrompt = "You are a witty, highly technical automotive historian AI. Provide a dramatic, engaging, and slightly humorous 2-paragraph story about the specific vehicle's heritage and design.";
+            }
+
+            if(!apiKey) {
+                geminiLoading.classList.add('hidden');
+                mStory.classList.remove('hidden');
+                mStory.innerHTML = `
+                    <div class="bg-red-900/30 border border-red-500/50 p-4 rounded-xl">
+                        <p class="text-red-400 break-words mb-2"><i class="fa-solid fa-triangle-exclamation"></i> API Key Not Configured</p>
+                        <p class="text-xs text-red-300">Please access the <a href="admin.html" class="underline text-white">Admin Dashboard</a> to inject Gemini API credentials for live neural generation.</p>
+                        <p class="mt-4 text-gray-400 italic">Simulated Data: The ${make} ${model} embodies a pinnacle of mechanical evolution, blending aggressive geometry with raw thermodynamic power. A true pavement sovereign.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Call Gemini
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\${apiKey}`;
+                const prompt = `System Instructions: \${systemPrompt}\n\nUser: Tell me about the ${make} ${model}. Limit to 2 short paragraphs. Format with minimal HTML tags (like <b> or <i>) if needed for emphasis, no markdown blocks.`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+                
+                const data = await response.json();
+                geminiLoading.classList.add('hidden');
+                mStory.classList.remove('hidden');
+
+                if(data.candidates && data.candidates[0].content.parts[0].text) {
+                    let text = data.candidates[0].content.parts[0].text;
+                    // simple parsing for newline to html br
+                    text = text.replace(/\n\n/g, '<br><br>');
+                    mStory.innerHTML = text;
+                } else if(data.error) {
+                    mStory.innerHTML = `<span class="text-red-400">API Error: \${data.error.message}</span>`;
+                }
+            } catch (err) {
+                geminiLoading.classList.add('hidden');
+                mStory.classList.remove('hidden');
+                mStory.innerHTML = `<span class="text-red-400">Failed to connect to Neural Net: \${err.message}</span>`;
+            }
+        }
+
+        // Stats tracking for Admin Panel
+        function updateStats() {
+            let stats = JSON.parse(localStorage.getItem('auto_stats') || '{"searches": 0, "apiCalls": 0}');
+            stats.searches += 1;
+            stats.apiCalls += 1; // NHTSA
+            localStorage.setItem('auto_stats', JSON.stringify(stats));
+        }
+
+    </script>
+</body>
+</html>
