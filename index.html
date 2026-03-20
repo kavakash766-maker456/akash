@@ -278,7 +278,6 @@
             </div>
             <div class="flex gap-6 items-center">
                 <a href="#explore" class="interactive text-sm uppercase tracking-widest text-gray-400 hover:text-white transition-colors">Explore</a>
-                <a href="admin.html" class="interactive text-sm uppercase tracking-widest text-gray-400 hover:text-electricpurple transition-colors"><i class="fa-solid fa-lock"></i></a>
             </div>
         </div>
     </nav>
@@ -321,11 +320,16 @@
         
         <!-- Status / Category Header -->
         <div class="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-gray-800 pb-6 reveal-up">
-            <div>
-                <h2 class="font-display text-3xl font-bold uppercase tracking-tighter text-white" id="results-title">
-                    Global <span class="text-gray-600">Showcase</span>
-                </h2>
-                <p class="text-gray-400 mt-2 font-sans tracking-wide" id="results-subtitle">Search a brand to reveal its lineage.</p>
+            <div class="flex items-center gap-4">
+                <button id="back-to-brands" class="hidden glass-panel w-10 h-10 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-colors interactive">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div>
+                    <h2 class="font-display text-3xl font-bold uppercase tracking-tighter text-white" id="results-title">
+                        Global <span class="text-gray-600">Brands</span>
+                    </h2>
+                    <p class="text-gray-400 mt-2 font-sans tracking-wide" id="results-subtitle">Select a brand to reveal its lineage.</p>
+                </div>
             </div>
             
             <!-- Dynamic Filters (Populated via JS) -->
@@ -334,18 +338,21 @@
             </div>
         </div>
 
-        <!-- Vehicles Grid -->
+        <!-- Loader -->
         <div id="loader" class="hidden my-20 flex flex-col items-center justify-center">
             <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-800 h-16 w-16 mb-4"></div>
             <p class="text-neonblue font-display tracking-widest uppercase text-sm animate-pulse">Retreiving Databanks...</p>
         </div>
 
-        <div id="vehicles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Default Grid Before Search -->
-            <div class="col-span-full py-20 text-center glass-panel rounded-2xl reveal-up border-dashed border-gray-700">
-                <i class="fa-solid fa-car-side text-6xl text-gray-700 mb-6"></i>
-                <h3 class="font-display text-2xl text-gray-400 uppercase tracking-widest mb-2">Awaiting Input</h3>
-                <p class="text-gray-600 font-sans max-w-md mx-auto">Enter an automotive brand above to tap into the global vehicle catalog and unlock comprehensive details.</p>
+        <!-- Brands Grid -->
+        <div id="brands-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 reveal-up">
+            <!-- Populated via JS -->
+        </div>
+
+        <!-- Vehicles Container -->
+        <div id="vehicles-container" class="hidden">
+            <div id="vehicles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Vehicles -->
             </div>
         </div>
     </main>
@@ -534,66 +541,164 @@
         // --- Data Fetching Logic (vPIC API) ---
         const searchInput = document.getElementById('brand-search');
         const searchBtn = document.getElementById('search-btn');
-        const grid = document.getElementById('vehicles-grid');
+        const brandsGrid = document.getElementById('brands-grid');
+        const vehiclesContainer = document.getElementById('vehicles-container');
+        const vehiclesGrid = document.getElementById('vehicles-grid');
         const loader = document.getElementById('loader');
         const resultsTitle = document.getElementById('results-title');
+        const resultsSubtitle = document.getElementById('results-subtitle');
         const categoryFilters = document.getElementById('category-filters');
+        const backToBrandsBtn = document.getElementById('back-to-brands');
 
         let currentModels = [];
-        let allUniqueWords = []; // For faux categorization
+        let groupedModels = {};
+
+        const popularBrands = [
+            'Acura', 'Alfa Romeo', 'Aston Martin', 'Audi', 'Bentley', 'BMW', 'Bugatti', 'Buick', 'Cadillac', 
+            'Chevrolet', 'Chrysler', 'Dodge', 'Ferrari', 'Fiat', 'Ford', 'GMC', 'Honda', 'Hyundai', 'Infiniti', 
+            'Jaguar', 'Jeep', 'Kia', 'Lamborghini', 'Land Rover', 'Lexus', 'Lincoln', 'Lotus', 'Maserati', 'Mazda', 
+            'McLaren', 'Mercedes-Benz', 'Mini', 'Mitsubishi', 'Nissan', 'Porsche', 'Ram', 'Rolls-Royce', 'Subaru', 
+            'Suzuki', 'Tesla', 'Toyota', 'Volkswagen', 'Volvo'
+        ];
+
+        function initBrands() {
+            resultsTitle.innerHTML = `Global <span class="text-gray-600">Brands</span>`;
+            resultsSubtitle.textContent = "Select a brand to view its entire lineage.";
+            categoryFilters.innerHTML = '';
+            backToBrandsBtn.classList.add('hidden');
+            
+            vehiclesContainer.classList.add('hidden');
+            brandsGrid.classList.remove('hidden');
+            brandsGrid.innerHTML = '';
+
+            popularBrands.forEach((brand, i) => {
+                const div = document.createElement('div');
+                div.className = 'glass-panel p-6 rounded-xl flex flex-col items-center justify-center cursor-pointer interactive hover:border-neonblue transition-colors group';
+                
+                div.innerHTML = `
+                    <div class="w-16 h-16 rounded-full bg-black/50 border border-gray-700 mb-4 flex items-center justify-center group-hover:bg-neonblue/10 transition-colors shadow-lg shadow-black">
+                        <i class="fa-solid fa-car-side text-gray-500 group-hover:text-neonblue text-2xl transition-colors"></i>
+                    </div>
+                    <span class="font-display text-xs font-bold uppercase tracking-wider text-gray-300 group-hover:text-white text-center">${brand}</span>
+                `;
+                
+                div.addEventListener('click', () => {
+                    searchInput.value = brand;
+                    performSearch();
+                    window.scrollTo({ top: document.getElementById('explore').offsetTop - 50, behavior: 'smooth' });
+                });
+
+                brandsGrid.appendChild(div);
+            });
+            updateInteractiveElements();
+        }
+
+        // Initialize Brands on load
+        initBrands();
+
+        backToBrandsBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            initBrands();
+        });
 
         searchBtn.addEventListener('click', performSearch);
         searchInput.addEventListener('keypress', (e) => {
             if(e.key === 'Enter') performSearch();
         });
 
+        function categorizeModels(models) {
+            const groups = {
+                'A-E': [], 'F-J': [], 'K-O': [], 'P-T': [], 'U-Z': [], '# & Other': []
+            };
+            
+            models.forEach(m => {
+                const firstChar = m.Model_Name.trim().charAt(0).toUpperCase();
+                if (/[A-E]/.test(firstChar)) groups['A-E'].push(m);
+                else if (/[F-J]/.test(firstChar)) groups['F-J'].push(m);
+                else if (/[K-O]/.test(firstChar)) groups['K-O'].push(m);
+                else if (/[P-T]/.test(firstChar)) groups['P-T'].push(m);
+                else if (/[U-Z]/.test(firstChar)) groups['U-Z'].push(m);
+                else groups['# & Other'].push(m);
+            });
+            
+            for (const key in groups) {
+                if (groups[key].length === 0) delete groups[key];
+            }
+            return groups;
+        }
+
+        function generateCategories(make, groups) {
+            categoryFilters.innerHTML = '';
+            
+            const allBtn = createCategoryFilter('All', true);
+            allBtn.onclick = () => filterByCategory('All', make, allBtn, groups);
+            categoryFilters.appendChild(allBtn);
+
+            Object.keys(groups).forEach(cat => {
+                const btn = createCategoryFilter(cat, false);
+                btn.onclick = () => filterByCategory(cat, make, btn, groups);
+                categoryFilters.appendChild(btn);
+            });
+            updateInteractiveElements();
+        }
+
+        function createCategoryFilter(text, isActive) {
+            const btn = document.createElement('button');
+            btn.className = `interactive px-4 py-1.5 rounded-full border text-xs uppercase tracking-widest transition-colors ${isActive ? 'bg-neonblue text-black border-neonblue font-bold shadow-[0_0_10px_rgba(0,243,255,0.4)]' : 'border-gray-700 text-gray-400 hover:border-gray-400'}`;
+            btn.textContent = text;
+            return btn;
+        }
+
+        function filterByCategory(cat, make, activeBtn, groups) {
+            Array.from(categoryFilters.children).forEach(child => {
+                child.className = 'interactive px-4 py-1.5 rounded-full border text-xs uppercase tracking-widest transition-colors border-gray-700 text-gray-400 hover:border-gray-400';
+            });
+            activeBtn.className = 'interactive px-4 py-1.5 rounded-full border text-xs uppercase tracking-widest transition-colors bg-neonblue text-black border-neonblue font-bold shadow-[0_0_10px_rgba(0,243,255,0.4)]';
+            
+            if (cat === 'All') renderGrid(currentModels, make);
+            else renderGrid(groups[cat], make);
+        }
+
         async function performSearch() {
             const query = searchInput.value.trim().toLowerCase();
             if(!query) return;
 
             speakAI('search');
-            grid.innerHTML = '';
+            brandsGrid.classList.add('hidden');
+            vehiclesContainer.classList.remove('hidden');
+            vehiclesGrid.innerHTML = '';
             categoryFilters.innerHTML = '';
             loader.classList.remove('hidden');
-            resultsTitle.innerHTML = `Scanning: <span class="text-neonblue uppercase">${query}</span>`;
+            backToBrandsBtn.classList.remove('hidden');
+            
+            resultsTitle.innerHTML = `<span class="text-neonblue text-4xl uppercase">${query}</span>`;
+            resultsSubtitle.textContent = 'A complete registry of every model crafted by this marque.';
 
             try {
-                // Fetch models for make
                 const res = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${query}?format=json`);
                 const data = await res.json();
-
                 loader.classList.add('hidden');
 
                 if(data.Results && data.Results.length > 0) {
                     speakAI('found');
                     
-                    // Filter Out some duplicates, sort and take a reasonable subset to not crash the browser
-                    // vPIC can return hundreds of models
                     let uniqueModels = data.Results.filter((v,i,a)=>a.findIndex(v2=>(v2.Model_Name.trim().toUpperCase()===v.Model_Name.trim().toUpperCase()))===i);
-                    // Filter out non-alphanumeric weird entries sometimes found
                     uniqueModels = uniqueModels.filter(m => m.Model_Name.length > 1 && !m.Model_Name.includes('/'));
-                    
-                    // Sort alphabetically
                     uniqueModels.sort((a,b) => a.Model_Name.localeCompare(b.Model_Name));
                     
-                    // Just take top 24 for showcase purposes to maintain performance & layout
-                    currentModels = uniqueModels.slice(0, 24);
+                    currentModels = uniqueModels;
+                    groupedModels = categorizeModels(currentModels);
                     
-                    // Render Cards
                     renderGrid(currentModels, query);
-
-                    // Create faux categories based on keywords logic (since vPIC GetModelsForMake doesn't give VehicleType easily)
-                    generateCategories(query);
+                    generateCategories(query, groupedModels);
                     
-                    // Track Stats
                     updateStats();
-
                 } else {
                     speakAI('error');
-                    grid.innerHTML = `
+                    vehiclesGrid.innerHTML = `
                         <div class="col-span-full py-20 text-center glass-panel rounded-2xl border-dashed border-red-900">
                             <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-4"></i>
-                            <h3 class="font-display text-xl text-gray-300 uppercase">No Data Found</h3>
+                            <h3 class="font-display text-xl text-gray-300 uppercase">No Archives Found</h3>
                         </div>
                     `;
                 }
@@ -606,9 +711,8 @@
 
         function createCarCard(make, model) {
             const div = document.createElement('div');
-            div.className = 'glass-card rounded-2xl p-6 group cursor-pointer interactive transform transition-transform duration-500';
+            div.className = 'glass-card rounded-2xl p-6 group cursor-pointer interactive transform transition-transform duration-500 hover:z-20';
             
-            // AI Hover reaction for specific cars (randomized humor/facts)
             div.addEventListener('mouseenter', () => {
                 const quips = [
                     `That ${model}? Faster than your internet connection! 😂`,
@@ -616,20 +720,19 @@
                     `I analyzed the ${model}. My circuits approve.`,
                     `Classic ${make} engineering here.`
                 ];
-                speakAI('idle', quips[Math.floor(Math.random() * quips.length)]);
-                gsap.to(div, { scale: 1.03, duration: 0.3 });
+                if(Math.random() > 0.7) speakAI('idle', quips[Math.floor(Math.random() * quips.length)]);
+                gsap.to(div, { scale: 1.05, duration: 0.3 });
             });
             div.addEventListener('mouseleave', () => {
                 gsap.to(div, { scale: 1, duration: 0.3 });
             });
 
-            // We use loremflickr for generating an image based on keyword
-            const imgKeyword = encodeURIComponent(`${make.toLowerCase()} ${model.toLowerCase()}`);
-            const imgSrc = `https://loremflickr.com/400/250/${imgKeyword},car/all`;
+            const imgKeyword = encodeURIComponent(`${make} ${model} car high resolution`);
+            const imgSrc = `https://tse1.mm.bing.net/th?q=${imgKeyword}&w=600&h=400&c=7&rs=1&p=0&dpr=2&pid=1.7`;
             
             div.innerHTML = `
                 <div class="h-48 rounded-xl overflow-hidden mb-6 relative img-gradient bg-black">
-                    <img src="${imgSrc}" loading="lazy" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" onerror="this.style.opacity='0'">
+                    <img src="${imgSrc}" loading="lazy" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80';">
                     <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-80"></div>
                 </div>
                 <div class="absolute top-8 right-8 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-gray-700 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -646,7 +749,6 @@
                 </div>
             `;
 
-            // Attach Modal event
             div.querySelector('.deep-dive-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 openModal(make, model, imgSrc);
@@ -656,42 +758,15 @@
         }
 
         function renderGrid(models, make) {
-            grid.innerHTML = '';
+            vehiclesGrid.innerHTML = '';
             models.forEach((m, i) => {
                 const el = createCarCard(make, m.Model_Name);
-                grid.appendChild(el);
+                vehiclesGrid.appendChild(el);
                 
-                // Animate entrance
-                gsap.from(el, {
-                    y: 40,
-                    opacity: 0,
-                    duration: 0.6,
-                    delay: i * 0.05,
-                    ease: "back.out(1.7)"
-                });
-            });
-            updateInteractiveElements();
-        }
-
-        // Generate Faux Categories just for UI showcase
-        function generateCategories(make) {
-            const cats = ['All', 'Performance', 'Luxury', 'Utility'];
-            cats.forEach(c => {
-                const btn = document.createElement('button');
-                btn.className = `interactive px-4 py-1.5 rounded-full border text-xs uppercase tracking-widest transition-colors ${c === 'All' ? 'bg-neonblue text-black border-neonblue font-bold shadow-[0_0_10px_rgba(0,243,255,0.4)]' : 'border-gray-700 text-gray-400 hover:border-gray-400'}`;
-                btn.textContent = c;
-                btn.addEventListener('click', () => {
-                    // Update Active state
-                    Array.from(categoryFilters.children).forEach(child => {
-                        child.className = `interactive px-4 py-1.5 rounded-full border text-xs uppercase tracking-widest transition-colors border-gray-700 text-gray-400 hover:border-gray-400`;
-                    });
-                    btn.className = `interactive px-4 py-1.5 rounded-full border text-xs uppercase tracking-widest transition-colors bg-neonblue text-black border-neonblue font-bold shadow-[0_0_10px_rgba(0,243,255,0.4)]`;
-                    
-                    // Simple shuffle for visual effect since we don't have real category data from GetModelsForMake
-                    const shuffled = [...currentModels].sort(() => 0.5 - Math.random());
-                    renderGrid(shuffled, make);
-                });
-                categoryFilters.appendChild(btn);
+                // Animate entrance for first 20 nodes only
+                if(i < 20) {
+                    gsap.fromTo(el, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, delay: i * 0.05, ease: "power2.out" });
+                }
             });
             updateInteractiveElements();
         }
@@ -757,15 +832,18 @@
             }
 
             if(!apiKey) {
-                geminiLoading.classList.add('hidden');
-                mStory.classList.remove('hidden');
-                mStory.innerHTML = `
-                    <div class="bg-red-900/30 border border-red-500/50 p-4 rounded-xl">
-                        <p class="text-red-400 break-words mb-2"><i class="fa-solid fa-triangle-exclamation"></i> API Key Not Configured</p>
-                        <p class="text-xs text-red-300">Please access the <a href="admin.html" class="underline text-white">Admin Dashboard</a> to inject Gemini API credentials for live neural generation.</p>
-                        <p class="mt-4 text-gray-400 italic">Simulated Data: The ${make} ${model} embodies a pinnacle of mechanical evolution, blending aggressive geometry with raw thermodynamic power. A true pavement sovereign.</p>
-                    </div>
-                `;
+                setTimeout(() => {
+                    geminiLoading.classList.add('hidden');
+                    mStory.classList.remove('hidden');
+                    mStory.innerHTML = `
+                        <p class="mb-4">The <span class="text-white font-bold font-display tracking-widest uppercase">${make} ${model}</span> stands as a towering testament to automotive engineering and uncompromising design lineage. Since its inception, this model has consistently pushed the boundaries of its class, blending aerodynamic finesse with raw thermodynamic mastery.</p>
+                        <p class="mb-4">Beneath its sculpted exterior lies a meticulously tuned powertrain architecture. Whether it's carving tight apexes on a challenging circuit or effortlessly cruising along open highways, the ${model} delivers a driving experience that embodies the perfect synthesis of mechanical precision and aesthetic brilliance.</p>
+                        <div class="bg-gray-900/50 border border-neonblue/20 p-3 rounded-lg flex items-start gap-3 mt-6">
+                            <i class="fa-solid fa-circle-info text-neonblue mt-1"></i>
+                            <p class="text-xs text-gray-400">For dynamic, live AI generation of this vehicle's heritage, please securely inject your Google Gemini API key via the <a href="admin.html" class="underline text-white hover:text-neonblue transition-colors">Admin Dashboard</a>.</p>
+                        </div>
+                    `;
+                }, 1000);
                 return;
             }
 
